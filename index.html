@@ -1,0 +1,1109 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="data:," />
+    <title>RecBack Web</title>
+    <style>
+      :root {
+        --bg: #04060d;
+        --panel: rgba(11, 18, 34, 0.78);
+        --panel-solid: #0b1222;
+        --line: rgba(56, 224, 255, 0.28);
+        --line-soft: rgba(148, 197, 255, 0.14);
+        --cyan: #22d3ee;
+        --teal: #2dd4bf;
+        --green: #4ade80;
+        --pink: #f472b6;
+        --red: #fb3b57;
+        --orange: #fb923c;
+        --purple: #a855f7;
+        --text: #eaf7ff;
+        --muted: #93b4c9;
+        --muted-2: #5f7d92;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        background:
+          radial-gradient(900px 480px at 50% -160px, rgba(34, 211, 238, 0.13), transparent 65%),
+          radial-gradient(700px 420px at 88% 110%, rgba(168, 85, 247, 0.08), transparent 60%),
+          var(--bg);
+        color: var(--text);
+        font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", "Yu Gothic", system-ui, sans-serif;
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap { max-width: 880px; margin: 0 auto; padding: 18px 16px 48px; }
+
+      /* ---------- header ---------- */
+      header.top {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; padding: 4px 2px 16px;
+      }
+      .logo {
+        font-size: 30px; font-weight: 800; letter-spacing: 0.04em; line-height: 1;
+        color: #f2fbff;
+        text-shadow: 0 0 14px rgba(34, 211, 238, 0.65), 0 0 34px rgba(34, 211, 238, 0.3);
+      }
+      .logo .accent { color: var(--cyan); }
+      .logo small {
+        display: block; margin-top: 5px;
+        font-size: 11px; font-weight: 600; letter-spacing: 0.22em;
+        color: var(--muted); text-shadow: none;
+      }
+      .pill {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 7px 14px; border-radius: 999px;
+        border: 1px solid var(--line-soft);
+        background: rgba(148, 197, 255, 0.06);
+        font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
+        color: var(--muted); white-space: nowrap;
+      }
+      .pill .dot { width: 9px; height: 9px; border-radius: 50%; background: #54707f; flex: none; }
+      .pill.rec {
+        border-color: rgba(251, 59, 87, 0.55); color: #ffd7dd;
+        background: rgba(251, 59, 87, 0.1);
+        box-shadow: 0 0 16px rgba(251, 59, 87, 0.25);
+      }
+      .pill.rec .dot { background: var(--red); box-shadow: 0 0 10px var(--red); animation: blink 1.15s ease-in-out infinite; }
+      @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+      @media (prefers-reduced-motion: reduce) {
+        .pill.rec .dot { animation: none; }
+      }
+
+      /* ---------- cards ---------- */
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        box-shadow: 0 0 0 1px rgba(0,0,0,0.35), 0 0 26px rgba(34, 211, 238, 0.07), inset 0 0 32px rgba(34, 211, 238, 0.03);
+        padding: 20px;
+        margin-bottom: 16px;
+        backdrop-filter: blur(6px);
+      }
+      .card h2 {
+        margin: 0 0 14px; font-size: 15px; font-weight: 800; letter-spacing: 0.12em;
+        color: #c9ecff;
+      }
+      .card h2 .h-sub { font-size: 11px; color: var(--muted-2); letter-spacing: 0.04em; font-weight: 600; margin-left: 8px; }
+
+      /* ---------- stage ---------- */
+      .stage { display: flex; gap: 18px; align-items: stretch; }
+      .gauge-col { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: none; }
+      .gauge-area { position: relative; width: 96px; height: 324px; }
+      .capsule {
+        position: absolute; top: 0; bottom: 0; left: 0; width: 56px;
+        border: 1px solid rgba(56, 224, 255, 0.4);
+        border-radius: 999px;
+        background: rgba(4, 12, 22, 0.85);
+        box-shadow: inset 0 0 18px rgba(34, 211, 238, 0.1), 0 0 18px rgba(34, 211, 238, 0.12);
+        overflow: hidden;
+      }
+      .gauge-stack, .labels-stack { position: absolute; left: 0; width: 56px; will-change: transform; }
+      .gauge-stack { padding: 0 5px; }
+      .seg { position: absolute; left: 5px; right: 5px; }
+      .seg-visual {
+        position: absolute; left: 0; right: 0; bottom: 0; top: 3px;
+        clip-path: polygon(50% 0%, 100% 34%, 100% 100%, 0% 100%, 0% 34%);
+        background: rgba(160, 210, 235, 0.09);
+        overflow: hidden;
+      }
+      .seg-fill {
+        position: absolute; left: 0; right: 0; bottom: 0; height: 0%;
+      }
+      .labels-stack { pointer-events: none; }
+      .seg-label {
+        position: absolute; left: 64px; transform: translateY(50%);
+        font-size: 10px; font-weight: 700; letter-spacing: 0.03em;
+        color: var(--muted); white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+      .gauge-cap { font-size: 10px; letter-spacing: 0.14em; color: var(--muted-2); font-weight: 700; text-align: center; }
+
+      .center-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      .near-label {
+        font-size: 13px; font-weight: 800; letter-spacing: 0.34em; color: var(--cyan);
+        text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+      }
+      .timer {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+        font-size: clamp(52px, 13vw, 76px); font-weight: 700; line-height: 1.05;
+        letter-spacing: 0.02em; color: #f4fcff;
+        text-shadow: 0 0 18px rgba(45, 212, 191, 0.35);
+        font-variant-numeric: tabular-nums;
+        margin: 2px 0 4px;
+      }
+      .window-line { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+      .window-line b { color: #d9f3ff; font-weight: 700; }
+      #wave { width: 100%; height: 108px; display: block; margin: 10px 0 4px; }
+
+      .start-btn {
+        margin-top: 10px; width: 100%;
+        padding: 16px 20px; border-radius: 14px;
+        font-size: 17px; font-weight: 800; letter-spacing: 0.1em;
+        cursor: pointer; font-family: inherit;
+        transition: transform 0.08s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+      .start-btn:active { transform: scale(0.985); }
+      .start-btn.idle {
+        border: none; color: #fff;
+        background: linear-gradient(135deg, #f43f5e 0%, #e11d48 55%, #db2777 100%);
+        box-shadow: 0 6px 26px rgba(244, 63, 94, 0.4), 0 0 18px rgba(244, 63, 94, 0.25);
+      }
+      .start-btn.recording {
+        background: rgba(34, 211, 238, 0.05); color: var(--cyan);
+        border: 1.5px solid var(--cyan);
+        box-shadow: 0 0 18px rgba(34, 211, 238, 0.22), inset 0 0 14px rgba(34, 211, 238, 0.07);
+      }
+      .start-btn:disabled { opacity: 0.55; cursor: wait; }
+      .start-hint { margin-top: 8px; font-size: 11.5px; color: var(--muted-2); min-height: 1em; }
+
+      /* ---------- mic permission ---------- */
+      .mic-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+      .mic-btn {
+        padding: 10px 16px; border-radius: 999px; cursor: pointer; font-family: inherit;
+        font-size: 13.5px; font-weight: 800; letter-spacing: 0.04em;
+        border: 1px solid var(--teal); color: #a7f3ea;
+        background: rgba(45, 212, 191, 0.08);
+        transition: all 0.15s ease;
+      }
+      .mic-btn:active { transform: scale(0.97); }
+      .mic-btn:disabled { cursor: default; opacity: 0.9; }
+      .mic-btn.granted {
+        border-color: rgba(74, 222, 128, 0.55); color: #bbf7d0;
+        background: rgba(74, 222, 128, 0.08);
+        box-shadow: 0 0 12px rgba(74, 222, 128, 0.18);
+      }
+      .mic-btn.denied {
+        border-color: rgba(251, 59, 87, 0.55); color: #fecdd3;
+        background: rgba(251, 59, 87, 0.08);
+      }
+      .mic-status { font-size: 12px; color: var(--muted-2); line-height: 1.6; flex: 1; min-width: 180px; }
+
+      .retention { margin-top: 14px; }
+      .retention .r-label { font-size: 11px; font-weight: 800; letter-spacing: 0.18em; color: var(--muted); margin-bottom: 8px; }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+      .chip {
+        padding: 9px 16px; border-radius: 999px; cursor: pointer;
+        border: 1px solid var(--line-soft); background: rgba(148, 197, 255, 0.05);
+        color: var(--muted); font-size: 14px; font-weight: 700; font-family: inherit;
+        transition: all 0.15s ease;
+      }
+      .chip.on {
+        color: #04121a; background: linear-gradient(135deg, var(--teal), var(--cyan));
+        border-color: transparent;
+        box-shadow: 0 0 14px rgba(45, 212, 191, 0.45);
+      }
+
+      /* ---------- save ---------- */
+      .save-all {
+        width: 100%; padding: 15px 18px; border: none; border-radius: 14px; cursor: pointer;
+        background: linear-gradient(135deg, #0ea5b7, #0284c7);
+        color: #fff; font-size: 16px; font-weight: 800; letter-spacing: 0.05em; font-family: inherit;
+        box-shadow: 0 4px 20px rgba(14, 165, 183, 0.35);
+        transition: transform 0.08s ease, opacity 0.15s ease;
+      }
+      .save-all:active { transform: scale(0.985); }
+      .save-all:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+      .save-custom {
+        display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+        margin-top: 14px; font-size: 14px; color: var(--muted);
+      }
+      .save-custom input {
+        width: 74px; padding: 10px 10px; border-radius: 10px;
+        border: 1px solid var(--line-soft); background: rgba(4, 12, 22, 0.8);
+        color: var(--text); font-size: 16px; font-family: inherit; text-align: center;
+        font-variant-numeric: tabular-nums;
+      }
+      .save-custom input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 10px rgba(34, 211, 238, 0.3); }
+      .btn-ghost {
+        padding: 11px 18px; border-radius: 10px; cursor: pointer; font-family: inherit;
+        border: 1px solid var(--cyan); color: var(--cyan); background: rgba(34, 211, 238, 0.06);
+        font-size: 14px; font-weight: 800; letter-spacing: 0.05em;
+      }
+      .btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+      .card .hint { margin: 12px 0 0; font-size: 12px; color: var(--muted-2); line-height: 1.7; }
+
+      /* ---------- recordings ---------- */
+      .empty { color: var(--muted-2); font-size: 13.5px; line-height: 1.8; padding: 6px 2px; }
+      .rec-item {
+        border: 1px solid var(--line-soft); border-radius: 14px;
+        background: rgba(148, 197, 255, 0.04);
+        padding: 14px; margin-bottom: 12px;
+      }
+      .rec-item:last-child { margin-bottom: 0; }
+      .rec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+      .rec-name { font-weight: 800; font-size: 14.5px; color: #eaf7ff; font-variant-numeric: tabular-nums; }
+      .rec-meta { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+      .rec-item audio { width: 100%; margin-top: 10px; height: 38px; }
+      .rec-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+      .mini-btn {
+        padding: 9px 14px; border-radius: 9px; cursor: pointer; font-family: inherit;
+        font-size: 13px; font-weight: 700;
+        border: 1px solid var(--line-soft); background: rgba(148, 197, 255, 0.06); color: #d9f3ff;
+      }
+      .mini-btn.ai {
+        border-color: rgba(74, 222, 128, 0.5); color: #bbf7d0;
+        background: rgba(74, 222, 128, 0.08);
+      }
+      .mini-btn.danger { color: #fda4af; border-color: rgba(251, 59, 87, 0.35); background: rgba(251, 59, 87, 0.05); }
+
+      /* ---------- notes ---------- */
+      .notes { border-color: var(--line-soft); box-shadow: none; }
+      .note { display: flex; gap: 12px; padding: 10px 0; }
+      .note + .note { border-top: 1px dashed rgba(148, 197, 255, 0.12); }
+      .note .n-ico { flex: none; width: 22px; height: 22px; margin-top: 1px; }
+      .note p { margin: 0; font-size: 13px; line-height: 1.85; color: var(--muted); }
+      .note p b { color: #d9f3ff; }
+
+      .error-box {
+        display: none;
+        border: 1px solid rgba(251, 59, 87, 0.5); background: rgba(251, 59, 87, 0.08);
+        color: #ffd7dd; border-radius: 14px; padding: 14px 16px;
+        font-size: 13.5px; line-height: 1.8; margin-bottom: 16px;
+      }
+      .error-box.show { display: block; }
+
+      footer { text-align: center; color: var(--muted-2); font-size: 11.5px; letter-spacing: 0.08em; padding-top: 6px; }
+
+      /* ---------- modal / toast ---------- */
+      .modal-veil {
+        position: fixed; inset: 0; background: rgba(2, 6, 14, 0.78);
+        display: none; align-items: center; justify-content: center;
+        padding: 20px; z-index: 50; backdrop-filter: blur(3px);
+      }
+      .modal-veil.show { display: flex; }
+      .modal {
+        width: 100%; max-width: 440px;
+        background: var(--panel-solid);
+        border: 1px solid rgba(74, 222, 128, 0.4); border-radius: 18px;
+        box-shadow: 0 0 34px rgba(74, 222, 128, 0.15);
+        padding: 22px;
+      }
+      .modal h3 { margin: 0 0 12px; font-size: 17px; }
+      .modal ol { margin: 0 0 14px; padding-left: 20px; font-size: 13.5px; line-height: 2; color: var(--muted); }
+      .modal ol b { color: #eaf7ff; }
+      .modal .m-file { font-size: 12px; color: var(--muted-2); margin-bottom: 14px; word-break: break-all; }
+      .modal .m-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+      .btn-primary {
+        flex: 1; min-width: 150px; padding: 13px 16px; border: none; border-radius: 11px; cursor: pointer;
+        background: linear-gradient(135deg, #22c55e, #0ea5b7); color: #fff;
+        font-size: 15px; font-weight: 800; font-family: inherit;
+        box-shadow: 0 4px 18px rgba(34, 197, 94, 0.3);
+      }
+      .btn-cancel {
+        padding: 13px 18px; border-radius: 11px; cursor: pointer; font-family: inherit;
+        border: 1px solid var(--line-soft); background: transparent; color: var(--muted);
+        font-size: 14px; font-weight: 700;
+      }
+      .toast {
+        position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px);
+        background: #0d1a2e; color: #eaf7ff; border: 1px solid var(--line);
+        padding: 12px 20px; border-radius: 999px; font-size: 13.5px; font-weight: 700;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.55), 0 0 16px rgba(34, 211, 238, 0.2);
+        opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 60;
+        max-width: calc(100vw - 32px); text-align: center;
+      }
+      .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+      @media (max-width: 560px) {
+        .wrap { padding: 14px 12px 40px; }
+        .card { padding: 16px 14px; }
+        .stage { gap: 12px; }
+        .gauge-area { width: 84px; height: 288px; }
+        .capsule, .gauge-stack, .labels-stack { width: 48px; }
+        .seg-label { left: 55px; font-size: 9.5px; }
+        #wave { height: 92px; }
+        .logo { font-size: 25px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <div class="logo">Rec<span class="accent">Back</span><small>RETROSPECTIVE AUDIO BUFFER — WEB</small></div>
+        <div class="pill" id="statusPill"><span class="dot"></span><span id="statusText">待機中</span></div>
+      </header>
+
+      <div class="error-box" id="errorBox"></div>
+
+      <section class="card stage">
+        <div class="gauge-col">
+          <div class="gauge-area" id="gaugeArea">
+            <div class="capsule"><div class="gauge-stack" id="gaugeStack"></div></div>
+            <div class="labels-stack" id="labelsStack" style="position:absolute; top:0; bottom:0; left:0;"></div>
+          </div>
+          <div class="gauge-cap">バッファ<br />保持量</div>
+        </div>
+
+        <div class="center-col">
+          <div class="near-label">直近</div>
+          <div class="timer" id="timer">00:00</div>
+          <div class="window-line"><b id="winStart">--:--:--</b> → <b id="winEnd">--:--:--</b>　・　保持上限 <b id="retLabel">5分</b></div>
+          <canvas id="wave"></canvas>
+          <div class="mic-row">
+            <button class="mic-btn" id="micBtn" type="button">🎙 マイクを許可する</button>
+            <span class="mic-status" id="micStatus">先に許可だけ取っておけます（許可しても録音は始まりません）</span>
+          </div>
+          <button class="start-btn idle" id="startBtn">● 録音を開始</button>
+          <div class="start-hint" id="startHint"></div>
+          <div class="retention">
+            <div class="r-label">保持時間（リングバッファ）</div>
+            <div class="chips" id="retChips">
+              <button class="chip on" data-min="5">5分</button>
+              <button class="chip" data-min="15">15分</button>
+              <button class="chip" data-min="30">30分</button>
+              <button class="chip" data-min="60">1時間</button>
+              <button class="chip" data-min="120">2時間</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>保存<span class="h-sub">バッファから切り出して WAV で書き出し</span></h2>
+        <button class="save-all" id="saveAllBtn" disabled>バッファ全体を保存</button>
+        <div class="save-custom">
+          <span>時間で保存：直近</span>
+          <input type="number" id="saveMin" min="0" max="120" value="1" inputmode="numeric" aria-label="分" />
+          <span>分</span>
+          <input type="number" id="saveSec" min="0" max="59" value="0" inputmode="numeric" aria-label="秒" />
+          <span>秒</span>
+          <button class="btn-ghost" id="saveCustomBtn" disabled>この長さで保存</button>
+        </div>
+        <p class="hint">保存すると WAV ファイルがダウンロードされ、下のリストにも残ります（このページを開いている間だけ）。対応ブラウザではリストの「共有」からそのまま他アプリへ送れます。</p>
+      </section>
+
+      <section class="card">
+        <h2>保存済みの録音<span class="h-sub">ページを閉じると消えます</span></h2>
+        <div id="recList"><div class="empty">まだ保存した録音はありません。録音を開始して少し待ってから「保存」を押すと、ここに並びます。</div></div>
+      </section>
+
+      <section class="card notes">
+        <div class="note">
+          <svg class="n-ico" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <p><b>録音はこのページを開いている間だけです。</b>ブラウザの仕様上、画面を消したり、タブを閉じたり、別のアプリに切り替えると録音は止まります。長時間の常駐録音には Android アプリ版をご利用ください。</p>
+        </div>
+        <div class="note">
+          <svg class="n-ico" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <p><b>音声は端末の外に出ません。</b>録音・バッファ・保存はすべてこのブラウザの中で処理され、どこにもアップロードされません。保存しなかった音声は、保持時間を過ぎた分から自動で破棄されます。</p>
+        </div>
+      </section>
+
+      <footer>RecBack Web — 限定公開プレビュー</footer>
+    </div>
+
+    <div class="modal-veil" id="aiModal">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle">
+        <h3 id="aiModalTitle">🤖 AI議事録の作り方</h3>
+        <ol>
+          <li>下のボタンから<b>この音声ファイルを Muse に共有</b>（またはダウンロードしてチャットの添付ボタンから追加）</li>
+          <li>「<b>文字起こしと要約をして</b>」と送る</li>
+          <li>Muse が音声を文字起こしし、<b>要約付きの議事録</b>を返します</li>
+        </ol>
+        <div class="m-file" id="aiModalFile"></div>
+        <div class="m-actions">
+          <button class="btn-primary" id="aiShareBtn">音声を共有する</button>
+          <button class="btn-cancel" id="aiCloseBtn">閉じる</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      'use strict';
+
+      /* ================= constants / state ================= */
+      var TARGET_SR = 16000; // ring buffer sample rate (Hz, mono)
+      var PALETTE = ['#22d3ee', '#3b82f6', '#fb923c', '#f43f5e', '#a855f7']; // cyan→blue→orange→red→purple
+
+      var retentionMin = 5;
+      var recording = false;
+      var starting = false;
+
+      var audioCtx = null, micStream = null, sourceNode = null, analyser = null;
+      var captureNode = null, silentGain = null, resampler = null;
+      var wakeLock = null;
+
+      // ring buffer (Float32 @ TARGET_SR)
+      var ring = null;        // { buf, cap, write, total }
+      var pushedSec = 0;      // total seconds captured this session (incl. discarded)
+      var frozenEndMs = null; // wall-clock end of buffer when stopped
+
+      var recordings = [];    // { id, name, blob, url, durSec, sizeKb, createdLabel }
+      var recSeq = 0;
+      var aiTarget = null;
+
+      /* ================= dom ================= */
+      function $(id) { return document.getElementById(id); }
+      var pill = $('statusPill'), statusText = $('statusText');
+      var timerEl = $('timer'), winStartEl = $('winStart'), winEndEl = $('winEnd'), retLabelEl = $('retLabel');
+      var startBtn = $('startBtn'), startHint = $('startHint'), errorBox = $('errorBox');
+      var saveAllBtn = $('saveAllBtn'), saveCustomBtn = $('saveCustomBtn');
+      var gaugeStack = $('gaugeStack'), labelsStack = $('labelsStack');
+      var waveCanvas = $('wave'), waveCtx = waveCanvas.getContext('2d');
+      var toastEl = $('toast');
+
+      var toastTimer = null;
+      function toast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 3600);
+      }
+      function showError(msg) { errorBox.textContent = msg; errorBox.classList.add('show'); }
+      function clearError() { errorBox.classList.remove('show'); errorBox.textContent = ''; }
+
+      /* ================= formatting ================= */
+      function pad2(n) { return (n < 10 ? '0' : '') + n; }
+      function fmtDur(sec) {
+        sec = Math.max(0, Math.floor(sec));
+        var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+        if (h > 0) return h + ':' + pad2(m) + ':' + pad2(s);
+        return pad2(m) + ':' + pad2(s);
+      }
+      function fmtClock(ms) {
+        var d = new Date(ms);
+        return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+      }
+      function fmtSegLabel(sec) {
+        sec = Math.round(sec);
+        if (sec < 60) return sec + '秒';
+        if (sec % 60 === 0) return (sec / 60) + '分';
+        return Math.floor(sec / 60) + ':' + pad2(sec % 60);
+      }
+      function fmtRet(min) { return min >= 60 ? (min / 60) + '時間' : min + '分'; }
+      function stampName(d) {
+        return 'recback_' + d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) +
+               '_' + pad2(d.getHours()) + pad2(d.getMinutes()) + pad2(d.getSeconds()) + '.wav';
+      }
+
+      /* ================= ring buffer ================= */
+      function makeRing(seconds) {
+        var cap = Math.max(1, Math.floor(seconds * TARGET_SR));
+        return { buf: new Float32Array(cap), cap: cap, write: 0, total: 0 };
+      }
+      function ringPush(samples) {
+        if (!ring || !samples.length) return;
+        var buf = ring.buf, cap = ring.cap, w = ring.write;
+        for (var i = 0; i < samples.length; i++) {
+          buf[w] = samples[i];
+          w = (w + 1) % cap;
+        }
+        ring.write = w;
+        ring.total += samples.length;
+        pushedSec += samples.length / TARGET_SR;
+      }
+      function ringBufferedSec() {
+        if (!ring) return 0;
+        return Math.min(ring.total, ring.cap) / TARGET_SR;
+      }
+      function ringExtract(seconds) {
+        var avail = Math.min(ring.total, ring.cap);
+        var n = Math.min(avail, Math.floor(seconds * TARGET_SR));
+        var out = new Float32Array(n);
+        if (n <= 0) return out;
+        var start = (ring.write - n) % ring.cap; if (start < 0) start += ring.cap;
+        var first = Math.min(n, ring.cap - start);
+        out.set(ring.buf.subarray(start, start + first), 0);
+        if (first < n) out.set(ring.buf.subarray(0, n - first), first);
+        return out;
+      }
+      function ringResize(newSeconds) {
+        var keepSec = Math.min(ringBufferedSec(), newSeconds);
+        var data = ringExtract(keepSec);
+        ring = makeRing(newSeconds);
+        ringPush(data);
+        pushedSec = ringBufferedSec();
+      }
+
+      /* ================= resampler (device rate -> 16kHz, linear) ================= */
+      function Resampler(inRate, outRate) {
+        this.ratio = inRate / outRate;
+        this.tail = new Float32Array(0);
+        this.offset = 0;
+      }
+      Resampler.prototype.process = function (chunk) {
+        var data = new Float32Array(this.tail.length + chunk.length);
+        data.set(this.tail, 0); data.set(chunk, this.tail.length);
+        var out = [];
+        var i = this.offset;
+        while (i + 1 < data.length) {
+          var idx = Math.floor(i), f = i - idx;
+          out.push(data[idx] * (1 - f) + data[idx + 1] * f);
+          i += this.ratio;
+        }
+        var consumed = Math.floor(i);
+        this.tail = data.slice(consumed);
+        this.offset = i - consumed;
+        return new Float32Array(out);
+      };
+
+      /* ================= WAV encode (16-bit PCM) ================= */
+      function encodeWAV(samples, sampleRate) {
+        var n = samples.length;
+        var buffer = new ArrayBuffer(44 + n * 2);
+        var v = new DataView(buffer);
+        function ws(off, s) { for (var i = 0; i < s.length; i++) v.setUint8(off + i, s.charCodeAt(i)); }
+        ws(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); ws(8, 'WAVE');
+        ws(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+        v.setUint16(22, 1, true); v.setUint32(24, sampleRate, true);
+        v.setUint32(28, sampleRate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+        ws(36, 'data'); v.setUint32(40, n * 2, true);
+        for (var i = 0; i < n; i++) {
+          var s = Math.max(-1, Math.min(1, samples[i]));
+          v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+        }
+        return new Blob([buffer], { type: 'audio/wav' });
+      }
+
+      /* ================= gauge (rocket pencil) ================= */
+      var segCount = 5, segSec = 60, segEls = [], labelEls = [];
+      function gaugeLayout() {
+        var retSec = retentionMin * 60;
+        segCount = retentionMin <= 6 ? retentionMin : 10;
+        segSec = retSec / segCount;
+        var stackH = (segCount + 1) * 100 / segCount;   // % of capsule height
+        var bottomOff = -100 / segCount;                // %
+        var childH = 100 / (segCount + 1);              // % of stack height
+        [gaugeStack, labelsStack].forEach(function (el) {
+          el.style.height = stackH + '%';
+          el.style.bottom = bottomOff + '%';
+          el.style.top = 'auto';
+        });
+        gaugeStack.innerHTML = ''; labelsStack.innerHTML = '';
+        segEls = []; labelEls = [];
+        for (var c = 0; c <= segCount; c++) {
+          var seg = document.createElement('div');
+          seg.className = 'seg';
+          seg.style.height = childH + '%';
+          seg.style.bottom = (c * childH) + '%';
+          var vis = document.createElement('div');
+          vis.className = 'seg-visual';
+          var fill = document.createElement('div');
+          fill.className = 'seg-fill';
+          vis.appendChild(fill);
+          seg.appendChild(vis);
+          gaugeStack.appendChild(seg);
+          segEls.push({ seg: seg, fill: fill });
+          if (c >= 1) {
+            var lab = document.createElement('div');
+            lab.className = 'seg-label';
+            lab.style.bottom = ((c + 1) * childH) + '%';
+            lab.textContent = fmtSegLabel(c * segSec);
+            labelsStack.appendChild(lab);
+            labelEls.push(lab);
+          }
+        }
+      }
+      function gaugeUpdate() {
+        if (!segEls.length) return;
+        var retSec = retentionMin * 60;
+        var buffered = ringBufferedSec();
+        var full = buffered >= retSec - 0.001 && pushedSec > retSec;
+        var phase = 0, q = 0;
+        if (full) {
+          var discarded = pushedSec - retSec;
+          q = Math.floor(discarded / segSec);
+          phase = (discarded - q * segSec) / segSec;
+        }
+        var ty = 'translateY(' + (-(phase * 100 / (segCount + 1))) + '%)';
+        gaugeStack.style.transform = ty;
+        labelsStack.style.transform = ty;
+        for (var c = 0; c <= segCount; c++) {
+          var e = segEls[c];
+          var absIdx = full ? (q + c - 1) : (c - 1);
+          var color = PALETTE[((absIdx % PALETTE.length) + PALETTE.length) % PALETTE.length];
+          var fillFrac, opacity = 1;
+          if (full) {
+            if (c === 0) fillFrac = phase;                       // newest segment entering from below
+            else if (c === segCount) { fillFrac = 1; opacity = 1 - phase; } // oldest exits top, fading
+            else fillFrac = 1;
+          } else {
+            var j = c - 1; // visible index from bottom
+            fillFrac = j < 0 ? 0 : Math.max(0, Math.min(1, (buffered - j * segSec) / segSec));
+          }
+          e.fill.style.height = (fillFrac * 100) + '%';
+          e.fill.style.background = 'linear-gradient(180deg, ' + color + 'ee, ' + color + '99)';
+          e.fill.style.boxShadow = fillFrac > 0 ? '0 0 12px ' + color + '88' : 'none';
+          e.seg.style.opacity = opacity;
+        }
+      }
+
+      /* ================= waveform (FFT dotted polyline) ================= */
+      var freqData = null, smoothPts = [];
+      var NPTS = 72;
+      for (var pi = 0; pi < NPTS; pi++) smoothPts.push(0);
+      function sizeWave() {
+        var r = waveCanvas.getBoundingClientRect();
+        var dpr = Math.min(2, window.devicePixelRatio || 1);
+        waveCanvas.width = Math.max(50, Math.floor(r.width * dpr));
+        waveCanvas.height = Math.max(30, Math.floor(r.height * dpr));
+      }
+      function waveColor(t) {
+        // teal -> green -> pink
+        var stops = [[45, 212, 191], [74, 222, 128], [244, 114, 182]];
+        var x = t * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(x)), f = x - i;
+        var a = stops[i], b = stops[i + 1];
+        return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * f) + ',' + Math.round(a[1] + (b[1] - a[1]) * f) + ',' + Math.round(a[2] + (b[2] - a[2]) * f) + ')';
+      }
+      function drawWave(now) {
+        var W = waveCanvas.width, H = waveCanvas.height;
+        if (!W) return;
+        waveCtx.clearRect(0, 0, W, H);
+        var base = H * 0.72, amp = H * 0.62;
+        var targets = [];
+        if (analyser && freqData) {
+          analyser.getByteFrequencyData(freqData);
+          var bins = freqData.length;
+          for (var i = 0; i < NPTS; i++) {
+            var t = i / (NPTS - 1);
+            var bin = Math.floor(Math.pow(t, 1.6) * bins * 0.72) + 2;
+            targets.push((freqData[Math.min(bins - 1, bin)] || 0) / 255);
+          }
+        } else {
+          for (var j = 0; j < NPTS; j++) {
+            var u = j / (NPTS - 1);
+            targets.push(0.06 + 0.045 * (0.5 + 0.5 * Math.sin(now / 900 + u * 9)) * (recording ? 1 : 1));
+          }
+        }
+        for (var k = 0; k < NPTS; k++) {
+          smoothPts[k] += (targets[k] - smoothPts[k]) * 0.32; // ~60fps interpolation smoothing
+        }
+        // faint connecting line
+        waveCtx.beginPath();
+        for (var m = 0; m < NPTS; m++) {
+          var x1 = (m / (NPTS - 1)) * (W - 8) + 4;
+          var y1 = base - smoothPts[m] * amp;
+          if (m === 0) waveCtx.moveTo(x1, y1); else waveCtx.lineTo(x1, y1);
+        }
+        waveCtx.strokeStyle = 'rgba(45,212,191,0.20)';
+        waveCtx.lineWidth = Math.max(1, W / 500);
+        waveCtx.stroke();
+        // glowing dots
+        for (var n = 0; n < NPTS; n++) {
+          var x = (n / (NPTS - 1)) * (W - 8) + 4;
+          var y = base - smoothPts[n] * amp;
+          var col = waveColor(n / (NPTS - 1));
+          waveCtx.beginPath();
+          waveCtx.arc(x, y, Math.max(1.4, W / 320), 0, Math.PI * 2);
+          waveCtx.fillStyle = col;
+          waveCtx.shadowColor = col;
+          waveCtx.shadowBlur = 7;
+          waveCtx.fill();
+          waveCtx.shadowBlur = 0;
+        }
+        // baseline
+        waveCtx.beginPath();
+        waveCtx.moveTo(0, base + H * 0.16); waveCtx.lineTo(W, base + H * 0.16);
+        waveCtx.strokeStyle = 'rgba(148,197,255,0.13)';
+        waveCtx.lineWidth = 1;
+        waveCtx.stroke();
+      }
+
+      /* ================= main loop ================= */
+      var lastTimerText = '', lastWinText = '';
+      function loop(now) {
+        drawWave(now || 0);
+        gaugeUpdate();
+        var buffered = ringBufferedSec();
+        var t = fmtDur(buffered);
+        if (t !== lastTimerText) { timerEl.textContent = t; lastTimerText = t; }
+        var endMs = recording ? Date.now() : (frozenEndMs || Date.now());
+        var startMs = endMs - buffered * 1000;
+        var w = fmtClock(startMs) + '|' + fmtClock(endMs);
+        if (w !== lastWinText) {
+          winStartEl.textContent = buffered > 0.05 ? fmtClock(startMs) : '--:--:--';
+          winEndEl.textContent = buffered > 0.05 ? fmtClock(endMs) : '--:--:--';
+          lastWinText = w;
+        }
+        var has = buffered > 0.2;
+        saveAllBtn.disabled = !has;
+        saveCustomBtn.disabled = !has;
+        if (has) saveAllBtn.textContent = 'バッファ全体を保存（直近 ' + fmtDur(buffered) + '）';
+        else saveAllBtn.textContent = 'バッファ全体を保存';
+        requestAnimationFrame(loop);
+      }
+
+      /* ================= mic permission ================= */
+      var micBtn = $('micBtn'), micStatusEl = $('micStatus');
+      var micState = 'unknown'; // unknown | granted | denied
+
+      function setMicState(state) {
+        micState = state;
+        micBtn.classList.remove('granted', 'denied');
+        if (state === 'granted') {
+          micBtn.textContent = '✓ マイク許可済み';
+          micBtn.classList.add('granted');
+          micBtn.disabled = true;
+          micStatusEl.textContent = '許可済みです。「録音を開始」を押せばすぐ始まります。';
+        } else if (state === 'denied') {
+          micBtn.textContent = 'マイクがブロック中';
+          micBtn.classList.add('denied');
+          micBtn.disabled = false;
+          micStatusEl.textContent = 'このサイトのマイクがブロックされています。タップすると解除手順を表示します。';
+        } else {
+          micBtn.textContent = '🎙 マイクを許可する';
+          micBtn.disabled = false;
+          micStatusEl.textContent = '先に許可だけ取っておけます（許可しても録音は始まりません）';
+        }
+      }
+
+      function requestMicPermission() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          showError('このブラウザではマイク録音（getUserMedia）に対応していません。最新の Chrome / Safari / Edge で、HTTPS のページから開いてください。アプリ内ブラウザで開いている場合は「Chromeで開く」をお試しください。');
+          return;
+        }
+        if (micState === 'denied') {
+          showError('マイクがブロックされています。解除方法 ― Chrome（Android）：アドレスバー左のアイコン →「権限」→ マイク →「許可」。Chrome（PC）：アドレスバー左のアイコン → サイトの設定 → マイク →「許可」。変更したらこのページを再読み込みしてください。');
+          return;
+        }
+        clearError();
+        micBtn.disabled = true;
+        micBtn.textContent = '許可ダイアログを表示中…';
+        // Permission only: grab the mic just long enough for the browser to
+        // grant it, then release immediately — recording has NOT started.
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+          stream.getTracks().forEach(function (t) { t.stop(); });
+          setMicState('granted');
+          toast('マイクの許可が取れました。あとは「録音を開始」を押すだけです');
+        }).catch(function (err) {
+          if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
+            setMicState('denied');
+            showError('マイクの使用が許可されませんでした。解除方法 ― Chrome（Android）：アドレスバー左のアイコン →「権限」→ マイク →「許可」。Chrome（PC）：アドレスバー左のアイコン → サイトの設定 → マイク →「許可」。変更したらこのページを再読み込みしてください。');
+          } else if (err && (err.name === 'NotFoundError' || err.name === 'OverconstrainedError')) {
+            setMicState('unknown');
+            showError('使えるマイクが見つかりませんでした。マイクが接続されているか確認してください。');
+          } else {
+            setMicState('unknown');
+            showError('マイクの許可を取得できませんでした（' + (err && err.name ? err.name : '不明なエラー') + '）。ページを再読み込みして、もう一度お試しください。');
+          }
+        });
+      }
+      micBtn.addEventListener('click', requestMicPermission);
+
+      // Reflect the browser's stored permission for this site (when the
+      // Permissions API supports querying the microphone, e.g. Chrome).
+      if (navigator.permissions && navigator.permissions.query) {
+        try {
+          navigator.permissions.query({ name: 'microphone' }).then(function (st) {
+            function syncPerm() {
+              if (st.state === 'granted') setMicState('granted');
+              else if (st.state === 'denied') setMicState('denied');
+              else setMicState('unknown');
+            }
+            syncPerm();
+            st.onchange = syncPerm;
+          }).catch(function () {});
+        } catch (e) { /* Safari etc.: button-only flow still works */ }
+      }
+
+      /* ================= recording control ================= */
+      var workletCode = [
+        'class RecBackCapture extends AudioWorkletProcessor {',
+        '  process(inputs) {',
+        '    var ch = inputs[0] && inputs[0][0];',
+        '    if (ch) { var copy = ch.slice(0); this.port.postMessage(copy, [copy.buffer]); }',
+        '    return true;',
+        '  }',
+        '}',
+        "registerProcessor('recback-capture', RecBackCapture);"
+      ].join('\n');
+
+      function onChunk(float32) {
+        if (!resampler) return;
+        ringPush(resampler.process(float32));
+      }
+
+      function startRecording() {
+        if (recording || starting) return;
+        clearError();
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          showError('このブラウザではマイク録音（getUserMedia）に対応していません。最新の Chrome / Safari / Edge で、HTTPS のページから開いてください。');
+          return;
+        }
+        starting = true;
+        startBtn.disabled = true;
+        startBtn.textContent = 'マイクに接続中…';
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+          micStream = stream;
+          try {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AC();
+          } catch (e) {
+            stream.getTracks().forEach(function (t) { t.stop(); });
+            starting = false;
+            startBtn.disabled = false;
+            startBtn.textContent = '● 録音を開始';
+            startBtn.className = 'start-btn idle';
+            showError('このブラウザでは Web Audio API が使えないため、録音を開始できませんでした。');
+            return;
+          }
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+          sourceNode = audioCtx.createMediaStreamSource(stream);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 2048;
+          analyser.smoothingTimeConstant = 0.55;
+          freqData = new Uint8Array(analyser.frequencyBinCount);
+          sourceNode.connect(analyser);
+          resampler = new Resampler(audioCtx.sampleRate, TARGET_SR);
+          ring = makeRing(retentionMin * 60);
+          pushedSec = 0;
+          frozenEndMs = null;
+
+          function hookScriptProcessor() {
+            captureNode = audioCtx.createScriptProcessor(4096, 1, 1);
+            captureNode.onaudioprocess = function (e) { onChunk(e.inputBuffer.getChannelData(0).slice(0)); };
+            silentGain = audioCtx.createGain(); silentGain.gain.value = 0;
+            sourceNode.connect(captureNode);
+            captureNode.connect(silentGain); silentGain.connect(audioCtx.destination);
+            beginSession();
+          }
+          if (audioCtx.audioWorklet && typeof AudioWorkletNode !== 'undefined') {
+            var blob = new Blob([workletCode], { type: 'application/javascript' });
+            var url = URL.createObjectURL(blob);
+            audioCtx.audioWorklet.addModule(url).then(function () {
+              URL.revokeObjectURL(url);
+              captureNode = new AudioWorkletNode(audioCtx, 'recback-capture');
+              captureNode.port.onmessage = function (e) { onChunk(e.data); };
+              sourceNode.connect(captureNode);
+              beginSession();
+            }).catch(function () {
+              URL.revokeObjectURL(url);
+              hookScriptProcessor();
+            });
+          } else {
+            hookScriptProcessor();
+          }
+        }).catch(function (err) {
+          starting = false;
+          startBtn.disabled = false;
+          startBtn.textContent = '● 録音を開始';
+          startBtn.className = 'start-btn idle';
+          if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
+            setMicState('denied');
+            showError('マイクの使用が許可されませんでした。ブラウザのアドレスバー横にあるサイト設定から、このページのマイクを「許可」にして、もう一度「録音を開始」を押してください。');
+          } else if (err && (err.name === 'NotFoundError' || err.name === 'OverconstrainedError')) {
+            showError('使えるマイクが見つかりませんでした。マイクが接続されているか確認してください。');
+          } else {
+            showError('マイクを開始できませんでした（' + (err && err.name ? err.name : '不明なエラー') + '）。ページを再読み込みして、もう一度お試しください。');
+          }
+        });
+      }
+
+      function beginSession() {
+        starting = false;
+        recording = true;
+        setMicState('granted');
+        startBtn.disabled = false;
+        startBtn.textContent = '録音をストップ';
+        startBtn.className = 'start-btn recording';
+        pill.classList.add('rec');
+        statusText.textContent = '録音中';
+        startHint.textContent = '録音中はこのページを開いたままにしてください（画面を消すと止まります）。';
+        if (navigator.wakeLock && navigator.wakeLock.request) {
+          navigator.wakeLock.request('screen').then(function (wl) { wakeLock = wl; }).catch(function () {});
+        }
+      }
+
+      function stopRecording() {
+        if (!recording) return;
+        recording = false;
+        frozenEndMs = Date.now();
+        try { if (captureNode) { captureNode.disconnect(); if (captureNode.port) captureNode.port.onmessage = null; if (captureNode.onaudioprocess) captureNode.onaudioprocess = null; } } catch (e) {}
+        try { if (silentGain) silentGain.disconnect(); } catch (e) {}
+        try { if (sourceNode) sourceNode.disconnect(); } catch (e) {}
+        try { if (analyser) analyser.disconnect(); } catch (e) {}
+        try { if (micStream) micStream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+        try { if (audioCtx) audioCtx.close(); } catch (e) {}
+        if (wakeLock) { try { wakeLock.release(); } catch (e) {} wakeLock = null; }
+        captureNode = null; silentGain = null; sourceNode = null; analyser = null; freqData = null;
+        micStream = null; audioCtx = null; resampler = null;
+        startBtn.textContent = '● 録音を開始';
+        startBtn.className = 'start-btn idle';
+        pill.classList.remove('rec');
+        statusText.textContent = '待機中';
+        startHint.textContent = ringBufferedSec() > 0.2
+          ? 'バッファは残っています。そのまま保存できます。再度「録音を開始」するとバッファはリセットされます。'
+          : '';
+      }
+
+      startBtn.addEventListener('click', function () {
+        if (recording) stopRecording(); else startRecording();
+      });
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && recording && navigator.wakeLock && navigator.wakeLock.request && !wakeLock) {
+          navigator.wakeLock.request('screen').then(function (wl) { wakeLock = wl; }).catch(function () {});
+        }
+      });
+
+      /* ================= retention ================= */
+      $('retChips').addEventListener('click', function (e) {
+        var btn = e.target.closest ? e.target.closest('.chip') : null;
+        if (!btn) return;
+        var min = parseInt(btn.getAttribute('data-min'), 10);
+        if (min === retentionMin) return;
+        retentionMin = min;
+        var chips = $('retChips').querySelectorAll('.chip');
+        chips.forEach(function (c) { c.classList.toggle('on', c === btn); });
+        retLabelEl.textContent = fmtRet(min);
+        if (ring) ringResize(min * 60);
+        gaugeLayout();
+        toast('保持時間を ' + fmtRet(min) + ' に変更しました');
+      });
+      retLabelEl.textContent = fmtRet(retentionMin);
+
+      /* ================= save / recordings ================= */
+      function downloadBlob(blob, name) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+      }
+      function canShareFile(blob, name) {
+        if (!navigator.canShare || !navigator.share) return false;
+        try {
+          var f = new File([blob], name, { type: 'audio/wav' });
+          return navigator.canShare({ files: [f] });
+        } catch (e) { return false; }
+      }
+      function shareItem(item) {
+        var file = new File([item.blob], item.name, { type: 'audio/wav' });
+        if (canShareFile(item.blob, item.name)) {
+          navigator.share({ files: [file], title: item.name }).catch(function () {});
+          return true;
+        }
+        return false;
+      }
+
+      function saveSeconds(seconds, label) {
+        var buffered = ringBufferedSec();
+        if (buffered <= 0.2) { toast('まだバッファに音声がありません'); return; }
+        var take = Math.min(seconds, buffered);
+        if (take <= 0.2) { toast('保存する長さが短すぎます'); return; }
+        var samples = ringExtract(take);
+        var blob = encodeWAV(samples, TARGET_SR);
+        var now = new Date();
+        var item = {
+          id: ++recSeq,
+          name: stampName(now),
+          blob: blob,
+          url: URL.createObjectURL(blob),
+          durSec: take,
+          sizeKb: Math.max(1, Math.round(blob.size / 1024)),
+          createdLabel: pad2(now.getHours()) + ':' + pad2(now.getMinutes()) + ':' + pad2(now.getSeconds())
+        };
+        recordings.unshift(item);
+        renderRecordings();
+        downloadBlob(blob, item.name);
+        toast(label + ' を保存しました（' + fmtDur(take) + ' / ' + item.sizeKb + ' KB）');
+      }
+
+      saveAllBtn.addEventListener('click', function () {
+        saveSeconds(ringBufferedSec(), 'バッファ全体');
+      });
+      saveCustomBtn.addEventListener('click', function () {
+        var m = parseInt($('saveMin').value, 10) || 0;
+        var s = parseInt($('saveSec').value, 10) || 0;
+        var total = m * 60 + s;
+        if (total <= 0) { toast('保存する長さを入力してください'); return; }
+        if (total > ringBufferedSec()) {
+          toast('バッファにある長さ（直近 ' + fmtDur(ringBufferedSec()) + '）を超えています。バッファ分だけ保存します。');
+        }
+        saveSeconds(total, '直近 ' + fmtDur(Math.min(total, ringBufferedSec())));
+      });
+
+      function renderRecordings() {
+        var list = $('recList');
+        list.innerHTML = '';
+        if (!recordings.length) {
+          var d = document.createElement('div');
+          d.className = 'empty';
+          d.textContent = 'まだ保存した録音はありません。録音を開始して少し待ってから「保存」を押すと、ここに並びます。';
+          list.appendChild(d);
+          return;
+        }
+        recordings.forEach(function (item) {
+          var el = document.createElement('div');
+          el.className = 'rec-item';
+          var head = document.createElement('div');
+          head.className = 'rec-head';
+          var nm = document.createElement('div');
+          nm.className = 'rec-name';
+          nm.textContent = '🎙 ' + item.createdLabel + ' の録音';
+          var meta = document.createElement('div');
+          meta.className = 'rec-meta';
+          meta.textContent = '長さ ' + fmtDur(item.durSec) + ' ・ ' + item.sizeKb + ' KB ・ WAV 16kHz';
+          head.appendChild(nm); head.appendChild(meta);
+          el.appendChild(head);
+          var audio = document.createElement('audio');
+          audio.controls = true;
+          audio.src = item.url;
+          audio.preload = 'metadata';
+          el.appendChild(audio);
+          var actions = document.createElement('div');
+          actions.className = 'rec-actions';
+          var dl = document.createElement('button');
+          dl.className = 'mini-btn'; dl.textContent = 'ダウンロード';
+          dl.addEventListener('click', function () { downloadBlob(item.blob, item.name); });
+          actions.appendChild(dl);
+          if (navigator.share) {
+            var sh = document.createElement('button');
+            sh.className = 'mini-btn'; sh.textContent = '共有';
+            sh.addEventListener('click', function () {
+              if (!shareItem(item)) { downloadBlob(item.blob, item.name); toast('この環境ではファイル共有に未対応のため、ダウンロードしました'); }
+            });
+            actions.appendChild(sh);
+          }
+          var ai = document.createElement('button');
+          ai.className = 'mini-btn ai'; ai.textContent = '🤖 AI議事録';
+          ai.addEventListener('click', function () { openAiModal(item); });
+          actions.appendChild(ai);
+          var del = document.createElement('button');
+          del.className = 'mini-btn danger'; del.textContent = '削除';
+          del.addEventListener('click', function () {
+            URL.revokeObjectURL(item.url);
+            recordings = recordings.filter(function (r) { return r.id !== item.id; });
+            renderRecordings();
+            toast('リストから削除しました');
+          });
+          actions.appendChild(del);
+          el.appendChild(actions);
+          list.appendChild(el);
+        });
+      }
+
+      /* ================= AI modal ================= */
+      var aiModal = $('aiModal');
+      function openAiModal(item) {
+        aiTarget = item;
+        $('aiModalFile').textContent = '対象ファイル： ' + item.name + '（' + fmtDur(item.durSec) + ' / ' + item.sizeKb + ' KB）';
+        $('aiShareBtn').textContent = canShareFile(item.blob, item.name) ? '音声を共有する' : 'ダウンロードして Muse に送る';
+        aiModal.classList.add('show');
+      }
+      function closeAiModal() { aiModal.classList.remove('show'); aiTarget = null; }
+      $('aiCloseBtn').addEventListener('click', closeAiModal);
+      aiModal.addEventListener('click', function (e) { if (e.target === aiModal) closeAiModal(); });
+      $('aiShareBtn').addEventListener('click', function () {
+        if (!aiTarget) return;
+        if (!shareItem(aiTarget)) {
+          downloadBlob(aiTarget.blob, aiTarget.name);
+          toast('ダウンロードしました。Muse のチャットにこのファイルを添付して「文字起こしと要約をして」と送ってください');
+        }
+        closeAiModal();
+      });
+
+      /* ================= init ================= */
+      gaugeLayout();
+      sizeWave();
+      window.addEventListener('resize', function () { sizeWave(); });
+      requestAnimationFrame(loop);
+    </script>
+  </body>
+</html>
